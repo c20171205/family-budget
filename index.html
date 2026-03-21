@@ -44,42 +44,49 @@
   /* ── Header ── */
   header {
     background: var(--ink);
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
+    padding: 16px 32px 0;
     position: sticky;
     top: 0;
     z-index: 100;
   }
-  .logo {
-    font-family: 'Noto Serif TC', serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--bg);
-    letter-spacing: 0.04em;
+  .header-top {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    margin-bottom: 16px;
   }
-  .logo-icon { font-size: 1.1rem; }
-  nav { display: flex; gap: 4px; }
+  .logo {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bg);
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon { font-size: 1rem; }
+  nav {
+    display: flex;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
   .nav-btn {
+    flex: 1;
     background: none;
     border: none;
-    color: #a89880;
+    border-bottom: 3px solid transparent;
+    color: #e8ddd0;
     font-family: 'Noto Sans TC', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
-    padding: 8px 18px;
-    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 12px 0;
     cursor: pointer;
     transition: all 0.18s;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.06em;
+    text-align: center;
   }
-  .nav-btn:hover { color: var(--bg); background: rgba(255,255,255,0.08); }
-  .nav-btn.active { color: var(--bg); background: var(--accent); }
+  .nav-btn:hover { color: #fff; }
+  .nav-btn.active { color: #fff; border-bottom-color: var(--accent2); background: rgba(255,255,255,0.05); }
 
   /* ── Main Layout ── */
   main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
@@ -240,14 +247,27 @@
   .modal-overlay.hidden { display: none; }
   .modal {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 28px 32px;
+    border-radius: var(--radius-lg);
     width: 100%; max-width: 520px; box-shadow: var(--shadow-lg);
+    display: flex; flex-direction: column;
+    max-height: 90vh;
   }
   .modal-title {
     font-family: 'Noto Serif TC', serif; font-size: 1.1rem; font-weight: 700;
-    margin-bottom: 20px; color: var(--ink);
+    color: var(--ink);
+    padding: 24px 32px 16px; flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
   }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal-body {
+    overflow-y: auto; padding: 20px 32px; flex: 1;
+  }
+  .modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    padding: 16px 32px; flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
 
   /* ── Records Table ── */
   .records-toolbar {
@@ -394,7 +414,7 @@
 
   /* ── Period Selector ── */
   .dash-controls { margin-bottom: 28px; }
-  .dash-top-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .dash-top-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; width: 100%; }
   .dash-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink3); white-space: nowrap; }
   .year-select-wrap { display: flex; align-items: center; gap: 10px; }
   .year-select {
@@ -438,31 +458,87 @@
   .date-range-info { font-size: 0.8rem; color: var(--ink3); margin-left: auto; font-family: 'DM Mono', monospace; }
 
   @media (max-width: 700px) {
+    /* Layout */
+    main { padding: 16px 12px; }
+    header { padding: 10px 16px 0; }
+    .logo { font-size: 1rem; }
+    .nav-btn { font-size: 0.88rem; padding: 10px 0; }
+
+    /* Section header */
+    .section-header { flex-wrap: wrap; gap: 6px; }
+    .section-title { font-size: 1.15rem; }
+
+    /* Form / Modal */
     .form-grid { grid-template-columns: 1fr; }
     .form-group.full { grid-column: 1; }
-    .summary-grid { grid-template-columns: 1fr; }
+    .form-card { padding: 20px 16px; }
+    .modal { padding: 0; }
+    .modal-title { padding: 16px; font-size: 1rem; }
+    .modal-body { padding: 12px 16px; }
+    .modal-actions { padding: 12px 16px; }
+    .type-toggle label { font-size: 0.82rem; padding: 8px 0; }
+
+    /* Date range row */
+    .date-range-row { flex-wrap: wrap; gap: 6px; }
+    .date-range-row input[type="date"] { width: calc(50% - 20px); }
+    .date-range-info { width: 100%; margin-left: 0; }
+
+    /* Records toolbar */
+    .records-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .search-input { width: 100%; }
+    .filter-row { flex-wrap: wrap; gap: 6px; }
+    .filter-chip { font-size: 0.75rem; padding: 5px 10px; }
+    .filter-row .btn { margin-left: auto; }
+
+    /* Table — horizontal scroll */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 600px; }
+    thead th { padding: 10px 10px; font-size: 0.7rem; }
+    tbody td { padding: 10px 10px; font-size: 0.82rem; }
+    .tag { font-size: 0.7rem; padding: 2px 7px; }
+    td.td-tag { min-width: 70px; }
+
+    /* Dashboard summary */
+    .summary-grid { grid-template-columns: 1fr; gap: 10px; }
+    .sum-value { font-size: 1.3rem; }
+
+    /* Ledger table */
+    .ledger-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .ledger-wrap table { min-width: 360px; }
+    .ledger-wrap tbody td { padding: 10px 12px; font-size: 0.82rem; }
+    .ledger-wrap thead th { padding: 10px 12px; }
+
+    /* Bar chart */
+    .bar-label { width: 44px; font-size: 0.72rem; }
+    .bar-val { font-size: 0.72rem; width: 70px; }
+
+    /* Pie / category grid */
     .pie-grid { grid-template-columns: 1fr; }
-    main { padding: 24px 16px; }
-    .form-card { padding: 24px 20px; }
-    header { padding: 0 16px; }
-    .logo span:not(.logo-icon) { display: none; }
+    .cat-name { font-size: 0.82rem; }
+    .cat-amt { font-size: 0.75rem; width: 64px; }
+
+    /* Period selector */
+    .dash-top-row { gap: 10px; }
+    .year-select { font-size: 0.88rem; min-width: 110px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo"><span class="logo-icon">⌂</span><span>家庭收支管理</span></div>
+  <div class="header-top">
+    <div class="logo"><span class="logo-icon">⌂</span><span>家庭收支管理</span></div>
+  </div>
   <nav>
-    <button class="nav-btn active" onclick="showView('records')">明細</button>
-    <button class="nav-btn" onclick="showView('dashboard')">分析</button>
+    <button class="nav-btn active" onclick="showView('dashboard')">帳務總覽</button>
+    <button class="nav-btn" onclick="showView('records')">收支明細</button>
   </nav>
 </header>
 
 <main>
 
   <!-- ═══ RECORDS VIEW ═══ -->
-  <div class="view active" id="view-records">
+  <div class="view" id="view-records">
     <div class="section-header">
       <h1 class="section-title">收支明細</h1>
       <span class="section-sub" id="rec-count">—</span>
@@ -507,14 +583,14 @@
   </div>
 
   <!-- ═══ DASHBOARD VIEW ═══ -->
-  <div class="view" id="view-dashboard">
+  <div class="view active" id="view-dashboard">
     <div class="section-header">
-      <h1 class="section-title">收支分析</h1>
-      <span class="section-sub">帳務總覽</span>
+      <h1 class="section-title">帳務總覽</h1>
+      <span class="section-sub">收支分析</span>
     </div>
 
     <div class="dash-controls">
-      <div class="dash-top-row">
+      <div class="dash-top-row" style="width:100%">
         <div class="year-select-wrap">
           <label class="dash-label">年度</label>
           <select class="year-select" id="year-select" onchange="onYearChange()">
@@ -524,9 +600,10 @@
         <div class="year-select-wrap" id="month-select-wrap" style="display:none">
           <label class="dash-label">月份</label>
           <select class="year-select" id="month-select" onchange="onMonthChange()">
-            <option value="all">全年度</option>
+            <option value="all">全年</option>
           </select>
         </div>
+        <button class="btn btn-primary" style="margin-left:auto;padding:7px 18px;font-size:0.85rem" onclick="openAddModal()">＋ 新增</button>
       </div>
     </div>
 
@@ -587,44 +664,46 @@
 <div class="modal-overlay hidden" id="add-modal">
   <div class="modal">
     <div class="modal-title">新增收支</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>收支類型 <span class="req">*</span></label>
-        <div class="type-toggle">
-          <input type="radio" name="txtype" id="type-expense" value="expense" checked>
-          <label for="type-expense" class="expense-lbl">💸 支出（轉出）</label>
-          <input type="radio" name="txtype" id="type-income" value="income">
-          <label for="type-income" class="income-lbl">💰 收入（轉入）</label>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>收支類型 <span class="req">*</span></label>
+          <div class="type-toggle">
+            <input type="radio" name="txtype" id="type-expense" value="expense" checked>
+            <label for="type-expense" class="expense-lbl">💸 支出（轉出）</label>
+            <input type="radio" name="txtype" id="type-income" value="income">
+            <label for="type-income" class="income-lbl">💰 收入（轉入）</label>
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label>發生日期 <span class="req">*</span></label>
-        <input type="date" id="f-date">
-      </div>
-      <div class="form-group">
-        <label>金額 <span class="req">*</span></label>
-        <input type="number" id="f-amount" placeholder="0" min="0" step="1">
-      </div>
-      <div class="form-group">
-        <label>帳戶類型 <span class="req">*</span></label>
-        <select id="f-account">
-          <option value="">請選擇</option>
-          <option value="cash">現金</option>
-          <option value="bank">銀行</option>
-          <option value="cc">信用卡</option>
-        </select>
-      </div>
-      <div class="form-group full">
-        <label>收支說明 <span class="req">*</span></label>
-        <input type="text" id="f-desc" placeholder="例：家樂福採購、薪資入帳…">
-      </div>
-      <div class="form-group full">
-        <label>分類</label>
-        <div class="category-group" id="cat-group"></div>
-      </div>
-      <div class="form-group full">
-        <label>備註</label>
-        <textarea id="f-note" placeholder="其他補充說明（選填）"></textarea>
+        <div class="form-group">
+          <label>發生日期 <span class="req">*</span></label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="form-group">
+          <label>金額 <span class="req">*</span></label>
+          <input type="number" id="f-amount" placeholder="0" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>帳戶類型 <span class="req">*</span></label>
+          <select id="f-account">
+            <option value="">請選擇</option>
+            <option value="cash">現金</option>
+            <option value="bank">銀行</option>
+            <option value="cc">信用卡</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>收支說明 <span class="req">*</span></label>
+          <input type="text" id="f-desc" placeholder="例：家樂福採購、薪資入帳…">
+        </div>
+        <div class="form-group full">
+          <label>分類</label>
+          <div class="category-group" id="cat-group"></div>
+        </div>
+        <div class="form-group full">
+          <label>備註</label>
+          <textarea id="f-note" placeholder="其他補充說明（選填）"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -638,43 +717,45 @@
 <div class="modal-overlay hidden" id="edit-modal">
   <div class="modal">
     <div class="modal-title">編輯記錄</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>收支類型</label>
-        <div class="type-toggle">
-          <input type="radio" name="e-txtype" id="e-type-expense" value="expense">
-          <label for="e-type-expense" class="expense-lbl">💸 支出</label>
-          <input type="radio" name="e-txtype" id="e-type-income" value="income">
-          <label for="e-type-income" class="income-lbl">💰 收入</label>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>收支類型</label>
+          <div class="type-toggle">
+            <input type="radio" name="e-txtype" id="e-type-expense" value="expense">
+            <label for="e-type-expense" class="expense-lbl">💸 支出</label>
+            <input type="radio" name="e-txtype" id="e-type-income" value="income">
+            <label for="e-type-income" class="income-lbl">💰 收入</label>
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label>發生日期</label>
-        <input type="date" id="e-date">
-      </div>
-      <div class="form-group">
-        <label>金額</label>
-        <input type="number" id="e-amount" min="0" step="1">
-      </div>
-      <div class="form-group">
-        <label>帳戶類型</label>
-        <select id="e-account">
-          <option value="cash">現金</option>
-          <option value="bank">銀行</option>
-          <option value="cc">信用卡</option>
-        </select>
-      </div>
-      <div class="form-group full">
-        <label>收支說明</label>
-        <input type="text" id="e-desc">
-      </div>
-      <div class="form-group full">
-        <label>分類</label>
-        <div class="category-group" id="e-cat-group"></div>
-      </div>
-      <div class="form-group full">
-        <label>備註</label>
-        <textarea id="e-note"></textarea>
+        <div class="form-group">
+          <label>發生日期</label>
+          <input type="date" id="e-date">
+        </div>
+        <div class="form-group">
+          <label>金額</label>
+          <input type="number" id="e-amount" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>帳戶類型</label>
+          <select id="e-account">
+            <option value="cash">現金</option>
+            <option value="bank">銀行</option>
+            <option value="cc">信用卡</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>收支說明</label>
+          <input type="text" id="e-desc">
+        </div>
+        <div class="form-group full">
+          <label>分類</label>
+          <div class="category-group" id="e-cat-group"></div>
+        </div>
+        <div class="form-group full">
+          <label>備註</label>
+          <textarea id="e-note"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -787,7 +868,7 @@ function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + id).classList.add('active');
-  document.querySelectorAll('.nav-btn')[{records:0,dashboard:1}[id]].classList.add('active');
+  document.querySelectorAll('.nav-btn')[{dashboard:0,records:1}[id]].classList.add('active');
   if (id === 'records') renderRecords();
   if (id === 'dashboard') { buildPeriodOptions(); renderDashboard(); }
 }
@@ -835,6 +916,7 @@ async function submitRecord() {
   buildPeriodOptions();
   renderDashboard();
   closeAddModal();
+  showView('records');
   showToast('儲存中…', 'loading');
   try {
     await saveToSheets(rec);
