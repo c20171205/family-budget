@@ -219,13 +219,35 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   tbody tr:hover .del-btn { opacity: 1; }
-  .del-btn {
+  tbody tr:hover .edit-btn { opacity: 1; }
+  .del-btn, .edit-btn {
     opacity: 0; background: none; border: none; cursor: pointer;
-    color: var(--expense); font-size: 1rem; padding: 2px 6px;
+    font-size: 1rem; padding: 2px 6px;
     border-radius: var(--radius); transition: all 0.15s;
     line-height: 1;
   }
+  .del-btn { color: var(--expense); }
   .del-btn:hover { background: var(--expense-light); }
+  .edit-btn { color: var(--ink3); }
+  .edit-btn:hover { background: var(--surface2); color: var(--ink); }
+
+  /* ── Edit Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(42,34,24,0.45);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px 32px;
+    width: 100%; max-width: 520px; box-shadow: var(--shadow-lg);
+  }
+  .modal-title {
+    font-family: 'Noto Serif TC', serif; font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 20px; color: var(--ink);
+  }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
   /* ── Records Table ── */
   .records-toolbar {
@@ -239,7 +261,8 @@
     font-size: 0.88rem; color: var(--ink); width: 220px; outline: none;
   }
   .search-input:focus { border-color: var(--accent); }
-  .filter-row { display: flex; gap: 8px; }
+  .filter-row { display: flex; gap: 8px; flex: 1; align-items: center; }
+  .filter-row .btn { margin-left: auto; }
   .filter-chip {
     padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
     background: var(--surface2); font-size: 0.8rem; cursor: pointer;
@@ -268,6 +291,7 @@
   td.desc { font-family: 'Noto Sans TC', sans-serif; color: var(--ink); }
   td.amt-income { color: var(--income); font-weight: 600; }
   td.amt-expense { color: var(--expense); font-weight: 600; }
+  td.td-tag { min-width: 90px; white-space: nowrap; }
   .tag {
     display: inline-block; padding: 2px 10px; border-radius: 12px;
     font-size: 0.75rem; font-weight: 500;
@@ -430,78 +454,15 @@
 <header>
   <div class="logo"><span class="logo-icon">⌂</span><span>家庭收支管理</span></div>
   <nav>
-    <button class="nav-btn active" onclick="showView('form')">記帳</button>
-    <button class="nav-btn" onclick="showView('records')">明細</button>
+    <button class="nav-btn active" onclick="showView('records')">明細</button>
     <button class="nav-btn" onclick="showView('dashboard')">分析</button>
   </nav>
 </header>
 
 <main>
 
-  <!-- ═══ FORM VIEW ═══ -->
-  <div class="view active" id="view-form">
-    <div class="section-header">
-      <h1 class="section-title">新增收支</h1>
-      <span class="section-sub">記錄每一筆家庭收支</span>
-    </div>
-    <div class="form-card">
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label>收支類型 <span class="req">*</span></label>
-          <div class="type-toggle">
-            <input type="radio" name="txtype" id="type-expense" value="expense" checked>
-            <label for="type-expense" class="expense-lbl">💸 支出（轉出）</label>
-            <input type="radio" name="txtype" id="type-income" value="income">
-            <label for="type-income" class="income-lbl">💰 收入（轉入）</label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>發生日期 <span class="req">*</span></label>
-          <input type="date" id="f-date">
-        </div>
-
-        <div class="form-group">
-          <label>金額 <span class="req">*</span></label>
-          <input type="number" id="f-amount" placeholder="0" min="0" step="1">
-        </div>
-
-        <div class="form-group">
-          <label>帳戶類型 <span class="req">*</span></label>
-          <select id="f-account">
-            <option value="">請選擇</option>
-            <option value="cash">現金</option>
-            <option value="bank">銀行</option>
-            <option value="cc">信用卡</option>
-          </select>
-        </div>
-
-        <div class="form-group full">
-          <label>收支說明 <span class="req">*</span></label>
-          <input type="text" id="f-desc" placeholder="例：家樂福採購、薪資入帳…">
-        </div>
-
-        <div class="form-group full">
-          <label>分類</label>
-          <div class="category-group" id="cat-group"></div>
-        </div>
-
-        <div class="form-group full">
-          <label>備註</label>
-          <textarea id="f-note" placeholder="其他補充說明（選填）"></textarea>
-        </div>
-
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost" onclick="resetForm()">清除</button>
-        <button class="btn btn-primary" onclick="submitRecord()">儲存記錄</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ═══ RECORDS VIEW ═══ -->
-  <div class="view" id="view-records">
+  <div class="view active" id="view-records">
     <div class="section-header">
       <h1 class="section-title">收支明細</h1>
       <span class="section-sub" id="rec-count">—</span>
@@ -523,6 +484,7 @@
         <span class="filter-chip" data-filter="cash" onclick="setFilter('cash')">現金</span>
         <span class="filter-chip" data-filter="bank" onclick="setFilter('bank')">銀行</span>
         <span class="filter-chip" data-filter="cc" onclick="setFilter('cc')">信用卡</span>
+        <button class="btn btn-primary" style="margin-left:auto;padding:6px 18px;font-size:0.85rem" onclick="openAddModal()">＋ 新增</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -531,6 +493,7 @@
           <tr>
             <th>日期</th>
             <th>說明</th>
+            <th>備註</th>
             <th>分類</th>
             <th>帳戶</th>
             <th>類型</th>
@@ -620,18 +583,119 @@
 
 </main>
 
+<!-- ═══ ADD MODAL ═══ -->
+<div class="modal-overlay hidden" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">新增收支</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>收支類型 <span class="req">*</span></label>
+        <div class="type-toggle">
+          <input type="radio" name="txtype" id="type-expense" value="expense" checked>
+          <label for="type-expense" class="expense-lbl">💸 支出（轉出）</label>
+          <input type="radio" name="txtype" id="type-income" value="income">
+          <label for="type-income" class="income-lbl">💰 收入（轉入）</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>發生日期 <span class="req">*</span></label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>金額 <span class="req">*</span></label>
+        <input type="number" id="f-amount" placeholder="0" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label>帳戶類型 <span class="req">*</span></label>
+        <select id="f-account">
+          <option value="">請選擇</option>
+          <option value="cash">現金</option>
+          <option value="bank">銀行</option>
+          <option value="cc">信用卡</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>收支說明 <span class="req">*</span></label>
+        <input type="text" id="f-desc" placeholder="例：家樂福採購、薪資入帳…">
+      </div>
+      <div class="form-group full">
+        <label>分類</label>
+        <div class="category-group" id="cat-group"></div>
+      </div>
+      <div class="form-group full">
+        <label>備註</label>
+        <textarea id="f-note" placeholder="其他補充說明（選填）"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddModal()">取消</button>
+      <button class="btn btn-primary" onclick="submitRecord()">儲存記錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">編輯記錄</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>收支類型</label>
+        <div class="type-toggle">
+          <input type="radio" name="e-txtype" id="e-type-expense" value="expense">
+          <label for="e-type-expense" class="expense-lbl">💸 支出</label>
+          <input type="radio" name="e-txtype" id="e-type-income" value="income">
+          <label for="e-type-income" class="income-lbl">💰 收入</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>發生日期</label>
+        <input type="date" id="e-date">
+      </div>
+      <div class="form-group">
+        <label>金額</label>
+        <input type="number" id="e-amount" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label>帳戶類型</label>
+        <select id="e-account">
+          <option value="cash">現金</option>
+          <option value="bank">銀行</option>
+          <option value="cc">信用卡</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>收支說明</label>
+        <input type="text" id="e-desc">
+      </div>
+      <div class="form-group full">
+        <label>分類</label>
+        <div class="category-group" id="e-cat-group"></div>
+      </div>
+      <div class="form-group full">
+        <label>備註</label>
+        <textarea id="e-note"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">儲存變更</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 // ─────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwpRGZdOeoko3vAznHvjCv8Ioe4P5EaqFEk_Awi4q7iuFu6RVil_g2HTXylTx85sMGO/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyGxQdG_aqkETtFndjbENF53kaz48LHKdHIXKMkUzo--z3ARUhASdI7bmcVNbvd9c-Z/exec';
 
 // ─────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────
-const CATS_EXPENSE = ['電費','水費','瓦斯費','電話費','餐聚','保養品','3C家電','居家用品','備用金','其他'];
+const CATS_EXPENSE = ['電費','水費','瓦斯費','電話費','網路費','餐聚','保養品','3C家電','居家用品','備用金','其他'];
 const CATS_INCOME  = ['共用金','利息','中獎','贊助','其他'];
 const ACCT_MAP = { cash:'現金', bank:'銀行', cc:'信用卡' };
 const CAT_COLORS = [
@@ -688,14 +752,13 @@ async function deleteFromSheets(id) {
 //  INIT
 // ─────────────────────────────────────────
 window.onload = () => {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('f-date').value = today;
+  const year = new Date().getFullYear();
+  document.getElementById('date-from').value = `${year}-01-01`;
+  document.getElementById('date-to').value   = `${year}-12-31`;
 
-  buildCatChips('expense');
   document.querySelectorAll('input[name="txtype"]').forEach(r =>
     r.addEventListener('change', () => buildCatChips(r.value))
   );
-
   loadFromSheets();
 };
 
@@ -724,9 +787,25 @@ function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + id).classList.add('active');
-  document.querySelectorAll('.nav-btn')[{form:0,records:1,dashboard:2}[id]].classList.add('active');
+  document.querySelectorAll('.nav-btn')[{records:0,dashboard:1}[id]].classList.add('active');
   if (id === 'records') renderRecords();
   if (id === 'dashboard') { buildPeriodOptions(); renderDashboard(); }
+}
+
+function openAddModal() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = today;
+  document.getElementById('f-amount').value = '';
+  document.getElementById('f-account').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-note').value = '';
+  document.getElementById('type-expense').checked = true;
+  buildCatChips('expense');
+  document.getElementById('add-modal').classList.remove('hidden');
+}
+
+function closeAddModal() {
+  document.getElementById('add-modal').classList.add('hidden');
 }
 
 // ─────────────────────────────────────────
@@ -751,33 +830,20 @@ async function submitRecord() {
     category: selectedCat || '其他'
   };
 
-  // 樂觀更新：先顯示在畫面上
   records.unshift(rec);
   renderRecords();
   buildPeriodOptions();
   renderDashboard();
-  resetForm();
+  closeAddModal();
   showToast('儲存中…', 'loading');
   try {
     await saveToSheets(rec);
     localStorage.setItem('hf_records', JSON.stringify(records));
     showToast(`已儲存：${desc} $${amount.toLocaleString()}`, 'success');
   } catch (e) {
-    // no-cors 模式下不會拋錯，保留樂觀更新
     localStorage.setItem('hf_records', JSON.stringify(records));
     showToast(`已儲存：${desc} $${amount.toLocaleString()}`, 'success');
   }
-}
-
-function resetForm() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('f-date').value = today;
-  document.getElementById('f-amount').value = '';
-  document.getElementById('f-account').value = '';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-note').value = '';
-  document.getElementById('type-expense').checked = true;
-  buildCatChips('expense');
 }
 
 // ─────────────────────────────────────────
@@ -792,8 +858,9 @@ function setFilter(f) {
 }
 
 function clearDateRange() {
-  document.getElementById('date-from').value = '';
-  document.getElementById('date-to').value = '';
+  const year = new Date().getFullYear();
+  document.getElementById('date-from').value = `${year}-01-01`;
+  document.getElementById('date-to').value   = `${year}-12-31`;
   renderRecords();
 }
 
@@ -811,7 +878,7 @@ function renderRecords() {
     const matchFrom = !dateFrom || r.date >= dateFrom;
     const matchTo   = !dateTo   || r.date <= dateTo;
     return matchFilter && matchSearch && matchFrom && matchTo;
-  });
+  }).sort((a, b) => b.date.localeCompare(a.date));
 
   // summary info
   const totalInc = rows.filter(r => r.type === 'income').reduce((s,r) => s+r.amount, 0);
@@ -832,13 +899,17 @@ function renderRecords() {
   }
   tbody.innerHTML = rows.map(r => `
     <tr>
-      <td>${r.date}</td>
+      <td>${String(r.date).slice(0,10).replace(/-/g,'/')}</td>
       <td class="desc">${esc(r.desc)}</td>
-      <td>${r.category ? `<span class="tag tag-${r.type === 'income' ? 'income' : 'expense'}">${esc(r.category)}</span>` : '—'}</td>
-      <td><span class="tag tag-${r.account}">${ACCT_MAP[r.account]}</span></td>
-      <td><span class="tag tag-${r.type}">${r.type === 'income' ? '收入' : '支出'}</span></td>
+      <td class="desc">${r.note ? esc(r.note) : '—'}</td>
+      <td class="td-tag">${r.category ? `<span class="tag tag-${r.type === 'income' ? 'income' : 'expense'}">${esc(r.category)}</span>` : '—'}</td>
+      <td class="td-tag"><span class="tag tag-${r.account}">${ACCT_MAP[r.account]}</span></td>
+      <td class="td-tag"><span class="tag tag-${r.type}">${r.type === 'income' ? '收入' : '支出'}</span></td>
       <td class="amt-${r.type}">${r.type === 'income' ? '+' : '-'}$${r.amount.toLocaleString()}</td>
-      <td><button class="del-btn" onclick="deleteRecord(${r.id})" title="刪除">✕</button></td>
+      <td style="white-space:nowrap">
+        <button class="edit-btn" onclick="openEditModal(${r.id})" title="編輯">✎</button>
+        <button class="del-btn" onclick="deleteRecord(${r.id})" title="刪除">✕</button>
+      </td>
     </tr>
   `).join('');
 }
@@ -1069,6 +1140,96 @@ async function deleteRecord(id) {
     showToast('已刪除', 'success');
   } catch (e) {
     showToast('已刪除', 'success');
+  }
+}
+
+let editingId = null;
+
+function openEditModal(id) {
+  const r = records.find(r => r.id === id);
+  if (!r) return;
+  editingId = id;
+
+  // 填入現有值
+  document.getElementById('e-date').value = String(r.date).slice(0,10);
+  document.getElementById('e-amount').value = r.amount;
+  document.getElementById('e-account').value = r.account;
+  document.getElementById('e-desc').value = r.desc;
+  document.getElementById('e-note').value = r.note || '';
+  document.querySelector(`input[name="e-txtype"][value="${r.type}"]`).checked = true;
+
+  // 建立分類 chips
+  buildEditCatChips(r.type, r.category);
+
+  document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function buildEditCatChips(type, selected) {
+  const cats = type === 'income' ? CATS_INCOME : CATS_EXPENSE;
+  const cg = document.getElementById('e-cat-group');
+  cg.innerHTML = '';
+  cats.forEach(c => {
+    const span = document.createElement('span');
+    span.className = 'cat-chip' + (c === selected ? ' selected' : '');
+    span.textContent = c;
+    span.onclick = () => {
+      cg.querySelectorAll('.cat-chip').forEach(x => x.classList.remove('selected'));
+      span.classList.add('selected');
+    };
+    cg.appendChild(span);
+  });
+}
+
+// 切換類型時重建 chips
+document.addEventListener('change', e => {
+  if (e.target.name === 'e-txtype') {
+    const cur = document.querySelector('#e-cat-group .cat-chip.selected')?.textContent || '';
+    buildEditCatChips(e.target.value, cur);
+  }
+});
+
+function closeEditModal() {
+  editingId = null;
+  document.getElementById('edit-modal').classList.add('hidden');
+}
+
+async function updateToSheets(rec) {
+  await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'update', ...rec }),
+    mode: 'no-cors'
+  });
+}
+
+async function saveEdit() {
+  const r = records.find(r => r.id === editingId);
+  if (!r) return;
+
+  const type    = document.querySelector('input[name="e-txtype"]:checked').value;
+  const date    = document.getElementById('e-date').value;
+  const amount  = parseFloat(document.getElementById('e-amount').value);
+  const account = document.getElementById('e-account').value;
+  const desc    = document.getElementById('e-desc').value.trim();
+  const note    = document.getElementById('e-note').value.trim();
+  const selCat  = document.querySelector('#e-cat-group .cat-chip.selected');
+  const category = selCat ? selCat.textContent : '其他';
+
+  if (!date || !amount || amount <= 0 || !account || !desc) {
+    showToast('請填寫所有必填欄位', 'error'); return;
+  }
+
+  Object.assign(r, { type, date, amount, account, desc, note, category });
+  localStorage.setItem('hf_records', JSON.stringify(records));
+  renderRecords();
+  renderDashboard();
+  closeEditModal();
+  showToast('更新中…', 'loading');
+
+  try {
+    await updateToSheets(r);
+    showToast('已更新', 'success');
+  } catch (e) {
+    showToast('已更新', 'success');
   }
 }
 
