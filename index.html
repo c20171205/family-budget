@@ -771,7 +771,7 @@
 // ─────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxw7fNj0ggWLCqAqIYBu1AL_JRTPnn-CieABe3RlFDpx_Pu_R7uur6XP1GO4HFKTWn2/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyGxQdG_aqkETtFndjbENF53kaz48LHKdHIXKMkUzo--z3ARUhASdI7bmcVNbvd9c-Z/exec';
 
 // ─────────────────────────────────────────
 //  STATE
@@ -797,7 +797,29 @@ async function loadFromSheets() {
     const res = await fetch(GAS_URL + '?t=' + Date.now());
     const data = await res.json();
     if (data.status === 'ok') {
-      records = data.records.map(r => ({ ...r, date: formatDate(r.date) })).sort((a, b) => b.date.localeCompare(a.date));
+// 修正時區偏移造成日期少一天的問題
+// API 回傳的日期可能是 "2025-05-19T16:00:00.000Z"（UTC）
+// 直接取字串前10碼，不經過 Date 物件轉換
+function fixDate(raw) {
+  if (!raw) return '';
+  const s = String(raw).trim();
+  // 如果包含 T（ISO 字串），只取日期部分，不轉換時區
+  // 例："2025-05-19T16:00:00.000Z" → "2025-05-19"，但這是UTC日期
+  // 所以要加8小時再取日期
+  if (s.includes('T') || s.includes('Z')) {
+    // 用 UTC 時間加8小時得到台灣時間
+    const ms = new Date(s).getTime() + (8 * 60 * 60 * 1000);
+    const d = new Date(ms);
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  // 已是純日期字串 "2025-05-20" 或 "2025/05/20"
+  return s.slice(0, 10).replace(/\//g, '-');
+}
+
+      records = data.records.map(r => ({ ...r, date: fixDate(r.date) })).sort((a, b) => b.date.localeCompare(a.date));
       localStorage.setItem('hf_records', JSON.stringify(records));
       showToast('資料載入完成', 'success');
     } else {
@@ -874,8 +896,7 @@ function showView(id) {
 }
 
 function openAddModal() {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const today = new Date().toISOString().split('T')[0];
   document.getElementById('f-date').value = today;
   document.getElementById('f-amount').value = '';
   document.getElementById('f-account').value = '';
@@ -982,7 +1003,7 @@ function renderRecords() {
   }
   tbody.innerHTML = rows.map(r => `
     <tr>
-      <td>${r.date.replace(/-/g,'/')}</td>
+      <td>${String(r.date).slice(0,10).replace(/-/g,'/')}</td>
       <td class="desc">${esc(r.desc)}</td>
       <td class="desc">${r.note ? esc(r.note) : '—'}</td>
       <td class="td-tag">${r.category ? `<span class="tag tag-${r.type === 'income' ? 'income' : 'expense'}">${esc(r.category)}</span>` : '—'}</td>
@@ -1316,24 +1337,9 @@ async function saveEdit() {
   }
 }
 
-// 統一日期格式化：輸入任何格式，輸出 yyyy-MM-dd（不受時區影響）
-function formatDate(raw) {
-  if (!raw) return '';
-  const s = String(raw).trim();
-  // 已是 yyyy-MM-dd 或 yyyy/MM/dd
-  const iso = s.slice(0, 10).replace(/\//g, '-');
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-  // Excel 序列號（數字）
-  const n = Number(raw);
-  if (!isNaN(n) && n > 40000) {
-    const d = new Date(Math.round((n - 25569) * 86400 * 1000));
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-  return iso;
-}
+// ─────────────────────────────────────────
+//  UTILITIES
+// ─────────────────────────────────────────
 function fmt(n) { return Math.round(n).toLocaleString(); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
